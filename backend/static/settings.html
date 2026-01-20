@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Nifty Option Trading</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --border: #2a2a3a;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --text-muted: #5a5a70;
+            --accent-blue: #4a9eff;
+            --accent-green: #00d084;
+            --accent-red: #ff4757;
+            --accent-gold: #ffc107;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body.light-theme {
+            --bg-primary: #f5f5f7;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --border: #e0e0e5;
+            --text-primary: #1a1a2e;
+            --text-secondary: #5a5a70;
+            --text-muted: #8888a0;
+            --accent-blue: #3b82f6;
+            --accent-green: #00b070;
+            --accent-red: #ef4444;
+            --accent-gold: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 24px;
+            color: white;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .status-box {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .status-box.configured {
+            background: rgba(0, 208, 132, 0.1);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .status-box.not-configured {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-blue), #3b82f6);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(74, 158, 255, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            margin-top: 12px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 14px 20px;
+            border-radius: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            display: none;
+            z-index: 1000;
+        }
+
+        .toast.success { border-left: 3px solid var(--accent-green); }
+        .toast.error { border-left: 3px solid var(--accent-red); }
+
+        .toast.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .info-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        .info-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .info-list {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .info-list a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        .info-list a:hover {
+            text-decoration: underline;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 18px;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+        <span id="theme-icon">&#9790;</span>
+    </button>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">N</div>
+                <span class="logo-text">Nifty Option Trading</span>
+            </div>
+            <p class="subtitle">API Configuration</p>
+        </div>
+
+        <div class="card">
+            <div class="card-title">
+                Dhan API Credentials
+            </div>
+
+            <div id="status" class="status-box not-configured">
+                Checking status...
+            </div>
+
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label class="form-label">Client ID</label>
+                    <input type="text" id="clientId" class="form-input" placeholder="Enter your Dhan Client ID" required>
+                    <p class="form-hint">Your Dhan trading account client ID</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Access Token</label>
+                    <input type="password" id="accessToken" class="form-input" placeholder="Enter your API Access Token" required>
+                    <p class="form-hint">Generate from Dhan Developer Portal</p>
+                </div>
+
+                <button type="submit" id="saveBtn" class="btn btn-primary">
+                    Save & Connect
+                </button>
+
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='/login'">
+                    Go to Login
+                </button>
+            </form>
+
+            <div class="info-section">
+                <div class="info-title">How to get API credentials</div>
+                <div class="info-list">
+                    1. Login to <a href="https://web.dhan.co/index/profile" target="_blank">web.dhan.co</a><br>
+                    2. Go to Profile section<br>
+                    3. Click on "Trading APIs"<br>
+                    4. Generate a new API key<br>
+                    5. Copy Client ID and Access Token
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Theme management
+        function getTheme() {
+            return localStorage.getItem('theme') || 'dark';
+        }
+
+        function setTheme(theme) {
+            localStorage.setItem('theme', theme);
+            document.body.className = theme === 'light' ? 'light-theme' : '';
+            document.getElementById('theme-icon').innerHTML = theme === 'light' ? '&#9728;' : '&#9790;';
+        }
+
+        function toggleTheme() {
+            const current = getTheme();
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        // Initialize theme
+        setTheme(getTheme());
+
+        const statusBox = document.getElementById('status');
+        const clientIdInput = document.getElementById('clientId');
+        const accessTokenInput = document.getElementById('accessToken');
+        const saveBtn = document.getElementById('saveBtn');
+        const toast = document.getElementById('toast');
+
+        function showToast(message, type) {
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        async function loadSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+
+                if (data.configured) {
+                    statusBox.className = 'status-box configured';
+                    statusBox.textContent = `Connected as ${data.client_id}`;
+                    clientIdInput.value = data.client_id;
+                    accessTokenInput.placeholder = data.access_token_masked || 'Token configured';
+                } else {
+                    statusBox.className = 'status-box not-configured';
+                    statusBox.textContent = 'Not configured - Enter your credentials below';
+                }
+            } catch (e) {
+                statusBox.className = 'status-box not-configured';
+                statusBox.textContent = 'Error loading settings';
+            }
+        }
+
+        document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const clientId = clientIdInput.value.trim();
+            const accessToken = accessTokenInput.value.trim();
+
+            if (!clientId || !accessToken) {
+                showToast('Please fill in both fields', 'error');
+                return;
+            }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Connecting...';
+
+            try {
+                const res = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ client_id: clientId, access_token: accessToken })
+                });
+
+                const data = await res.json();
+
+                if (data.status === 'success') {
+                    showToast(data.message, 'success');
+                    statusBox.className = 'status-box configured';
+                    statusBox.textContent = data.message;
+
+                    // Redirect to login after 2 seconds
+                    setTimeout(() => window.location.href = '/login', 2000);
+                } else if (data.status === 'warning') {
+                    showToast(data.message, 'error');
+                    statusBox.className = 'status-box not-configured';
+                    statusBox.textContent = data.message;
+                } else {
+                    showToast(data.message || 'Error saving settings', 'error');
+                }
+            } catch (e) {
+                showToast('Error connecting to server', 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save & Connect';
+            }
+        });
+
+        // Load on page load
+        loadSettings();
+    </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+{
+  "last_updated": "2026-01-20T14:36:45.269516",
+  "mode": "mock",
+  "trades": [
+    {
+      "id": "T20260120134140626952",
+      "timestamp": "2026-01-20T13:41:40.626965",
+      "symbol": "NIFTY-Jan2026-25450-CE",
+      "strike": 25450,
+      "option_type": "CE",
+      "side": "BUY",
+      "quantity": 2925,
+      "price": 0.25,
+      "order_id": "MOCK_20260120134140454620",
+      "expiry": "current",
+      "security_id": "47597",
+      "order_type": "LIMIT",
+      "limit_price": 0.25,
+      "is_mock": true,
+      "exit_price": 0.05,
+      "exit_time": "2026-01-20T14:36:45.259761",
+      "pnl": -585.0,
+      "status": "CLOSED"
+    },
+    {
+      "id": "T20260120143645268650",
+      "timestamp": "2026-01-20T14:36:45.268729",
+      "symbol": "NIFTY-Jan2026-25450-CE",
+      "strike": 0,
+      "option_type": "",
+      "side": "SELL",
+      "quantity": 2925,
+      "price": 0.05,
+      "order_id": "MOCK_EXIT_20260120143645259662",
+      "expiry": "",
+      "security_id": "47597",
+      "order_type": "MARKET",
+      "limit_price": null,
+      "is_mock": true,
+      "exit_price": null,
+      "exit_time": null,
+      "pnl": null,
+      "status": "CLOSED"
+    }
+  ]
+}

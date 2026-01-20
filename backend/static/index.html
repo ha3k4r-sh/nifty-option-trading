@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nifty Option Trading</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --border: #2a2a3a;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --text-muted: #5a5a70;
+            --accent-blue: #4a9eff;
+            --accent-green: #00d084;
+            --accent-red: #ff4757;
+            --accent-gold: #ffc107;
+            --accent-orange: #ff9500;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body.light-theme {
+            --bg-primary: #f5f5f7;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --border: #e0e0e5;
+            --text-primary: #1a1a2e;
+            --text-secondary: #5a5a70;
+            --text-muted: #8888a0;
+            --accent-blue: #3b82f6;
+            --accent-green: #00b070;
+            --accent-red: #ef4444;
+            --accent-gold: #f59e0b;
+            --accent-orange: #ea580c;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .app.mock-mode { border: 3px solid var(--accent-orange); }
+
+        /* HEADER */
+        .header {
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            height: 60px;
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: white;
+        }
+
+        .mock-badge {
+            padding: 4px 10px;
+            background: var(--accent-orange);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 4px;
+            text-transform: uppercase;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* MAIN TABS */
+        .main-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .main-tab {
+            padding: 10px 24px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .main-tab:hover { background: var(--bg-secondary); }
+        .main-tab.active { background: var(--accent-blue); color: white; }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .spot-box {
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .spot-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+        .spot-value { font-family: var(--font-mono); font-size: 20px; font-weight: 600; color: var(--accent-green); }
+
+        .time-box {
+            padding: 8px 12px;
+            background: var(--bg-card);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .funds { font-family: var(--font-mono); font-size: 14px; color: var(--accent-gold); font-weight: 600; }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .toggle-switch.active {
+            border-color: var(--accent-orange);
+            background: rgba(255, 149, 0, 0.1);
+            color: var(--accent-orange);
+        }
+
+        .toggle-dot {
+            width: 18px;
+            height: 10px;
+            background: var(--border);
+            border-radius: 5px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-dot::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            top: 1px;
+            left: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-switch.active .toggle-dot { background: var(--accent-orange); }
+        .toggle-switch.active .toggle-dot::after { left: 9px; background: white; }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* HOME TAB - Trading View */
+        .home-view {
+            display: grid;
+            grid-template-columns: 300px 1fr 320px;
+            height: 100%;
+            gap: 1px;
+            background: var(--border);
+        }
+
+        .panel {
+            background: var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .expiry-tabs {
+            display: flex;
+            gap: 2px;
+            padding: 4px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .expiry-tab {
+            padding: 6px 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 500;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .expiry-tab:hover { background: var(--bg-secondary); }
+        .expiry-tab.active { background: var(--accent-blue); color: white; }
+
+        .option-section { margin-bottom: 12px; }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            padding-left: 4px;
+        }
+
+        .option-item {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .option-item:hover { border-color: var(--border); transform: translateX(2px); }
+        .option-item.selected { border-color: var(--accent-blue); background: rgba(74, 158, 255, 0.1); }
+        .option-item.call { border-left: 4px solid var(--accent-green); }
+        .option-item.put { border-left: 4px solid var(--accent-red); }
+        .option-item.atm { background: rgba(255, 193, 7, 0.15); border-color: var(--accent-gold); }
+        .option-item.atm .option-name { color: var(--accent-gold); }
+
+        .atm-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            background: var(--accent-gold);
+            color: #000;
+            font-size: 9px;
+            font-weight: 700;
+            border-radius: 4px;
+            margin-left: 6px;
+        }
+
+        .option-name { font-size: 12px; font-weight: 600; }
+        .option-strike { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+        .divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+        /* ORDER PANEL */
+        .order-box {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .selected-contract {
+            text-align: center;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            margin-bottom: 16px;
+        }
+
+        .contract-name { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+
+        .contract-price {
+            font-family: var(--font-mono);
+            font-size: 36px;
+            font-weight: 700;
+            margin: 12px 0;
+        }
+
+        .contract-price.call { color: var(--accent-green); }
+        .contract-price.put { color: var(--accent-red); }
+        .contract-price.empty { color: var(--text-muted); font-size: 20px; }
+
+        .order-type-section { margin-bottom: 16px; }
+        .order-type-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
+        .order-type-btns { display: flex; gap: 8px; }
+
+        .order-type-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .order-type-btn.active { background: var(--accent-blue); border-color: var(--accent-blue); color: white; }
+
+        .limit-price-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 16px;
+            margin-top: 8px;
+        }
+
+        .limit-price-input:focus { outline: none; border-color: var(--accent-blue); }
+
+        .fetch-btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, var(--accent-blue), #3b82f6);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 16px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .fetch-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4); }
+        .fetch-btn:disabled { opacity: 0.6; cursor: wait; transform: none; }
+
+        .capital-section { margin: 20px 0; }
+        .capital-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; text-align: center; }
+        .capital-btns { display: flex; gap: 8px; }
+
+        .capital-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .capital-btn.active { background: var(--accent-blue); border-color: var(--accent-blue); color: white; }
+
+        .lots-display {
+            text-align: center;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            margin: 16px 0;
+        }
+
+        .lots-number { font-family: var(--font-mono); font-size: 42px; font-weight: 700; color: var(--accent-blue); }
+        .lots-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+        .lots-info { font-size: 11px; color: var(--text-muted); margin-top: 8px; font-family: var(--font-mono); }
+
+        .buy-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .buy-btn.enabled { background: linear-gradient(135deg, var(--accent-green), #00b070); color: white; }
+        .buy-btn.enabled:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 208, 132, 0.4); }
+        .buy-btn.disabled { background: var(--bg-card); color: var(--text-muted); cursor: not-allowed; }
+
+        /* POSITIONS */
+        .position-card {
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .position-card:hover { border-color: var(--accent-blue); }
+        .position-card.mock { border-left: 3px solid var(--accent-orange); }
+
+        .position-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .position-symbol { font-weight: 600; font-size: 12px; }
+        .position-qty { font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); }
+
+        .position-pnl {
+            text-align: center;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .pnl-value { font-family: var(--font-mono); font-size: 22px; font-weight: 700; }
+        .pnl-value.positive { color: var(--accent-green); }
+        .pnl-value.negative { color: var(--accent-red); }
+
+        .pnl-pct { font-family: var(--font-mono); font-size: 11px; margin-top: 2px; }
+        .pnl-pct.positive { color: var(--accent-green); }
+        .pnl-pct.negative { color: var(--accent-red); }
+
+        .position-details { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 10px; }
+        .detail-label { color: var(--text-muted); text-transform: uppercase; }
+        .detail-value { font-family: var(--font-mono); font-weight: 500; }
+
+        .exit-btn {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--accent-red);
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--accent-red);
+            font-weight: 600;
+            font-size: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .exit-btn:hover { background: var(--accent-red); color: white; }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
+
+        .no-select { color: var(--text-muted); text-align: center; padding: 40px 20px; }
+
+        /* TRADES TAB */
+        .trades-view {
+            padding: 24px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .trades-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .trades-title { font-size: 24px; font-weight: 700; }
+
+        .trades-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .trades-tab {
+            padding: 8px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .trades-tab:hover { background: var(--bg-secondary); }
+        .trades-tab.active { background: var(--accent-blue); color: white; }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .analytics-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .analytics-value { font-family: var(--font-mono); font-size: 28px; font-weight: 700; }
+        .analytics-value.positive { color: var(--accent-green); }
+        .analytics-value.negative { color: var(--accent-red); }
+        .analytics-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; margin-top: 8px; }
+
+        .chart-container {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+            height: 300px;
+        }
+
+        .trades-list {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .trades-list-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+            padding: 14px 20px;
+            background: var(--bg-secondary);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .trade-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            transition: background 0.2s ease;
+        }
+
+        .trade-row:hover { background: var(--bg-secondary); }
+        .trade-row:last-child { border-bottom: none; }
+
+        .trade-symbol { font-weight: 600; }
+        .trade-side.buy { color: var(--accent-green); }
+        .trade-side.sell { color: var(--accent-red); }
+        .trade-pnl.positive { color: var(--accent-green); }
+        .trade-pnl.negative { color: var(--accent-red); }
+
+        /* SETTINGS TAB */
+        .settings-view {
+            padding: 24px;
+            max-width: 800px;
+            margin: 0 auto;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .settings-title { font-size: 24px; font-weight: 700; margin-bottom: 24px; }
+
+        .settings-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .settings-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; display: block; }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 14px;
+        }
+
+        .form-input:focus { outline: none; border-color: var(--accent-blue); }
+
+        .btn-primary {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, var(--accent-blue), #3b82f6);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover { transform: translateY(-1px); }
+
+        .info-link {
+            display: inline-block;
+            padding: 12px 20px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-size: 13px;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .info-link:hover { border-color: var(--accent-blue); }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting-row:last-child { border-bottom: none; }
+        .setting-label { font-size: 14px; }
+
+        /* FOOTER */
+        .footer {
+            padding: 12px 20px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        .footer a:hover { text-decoration: underline; }
+
+        /* TOASTS */
+        .toast-container { position: fixed; top: 70px; right: 16px; z-index: 1000; }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            box-shadow: var(--shadow);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .toast.success { border-left: 4px solid var(--accent-green); }
+        .toast.error { border-left: 4px solid var(--accent-red); }
+        .toast.mock { border-left: 4px solid var(--accent-orange); }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* DHAN CREDENTIALS MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 480px;
+            margin: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 28px;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-form { margin-bottom: 20px; }
+
+        .modal-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.15);
+        }
+
+        .modal-input::placeholder { color: var(--text-muted); }
+
+        .modal-btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, var(--accent-blue), #3b82f6);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4);
+        }
+
+        .modal-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .modal-link {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .modal-link:hover { text-decoration: underline; }
+
+        .modal-error {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid var(--accent-red);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: var(--accent-red);
+            font-size: 13px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .modal-success {
+            background: rgba(0, 208, 132, 0.1);
+            border: 1px solid var(--accent-green);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: var(--accent-green);
+            font-size: 13px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const getTheme = () => localStorage.getItem('theme') || 'dark';
+        const setTheme = (theme) => {
+            localStorage.setItem('theme', theme);
+            document.body.className = theme === 'light' ? 'light-theme' : '';
+        };
+
+        const getToken = () => localStorage.getItem('auth_token');
+
+        const api = {
+            get: async (url) => {
+                const token = getToken();
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+                const res = await fetch(url, { headers });
+                if (res.status === 401) { localStorage.removeItem('auth_token'); window.location.href = '/login'; return null; }
+                return res.json();
+            },
+            post: async (url, data) => {
+                const token = getToken();
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+                const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(data) });
+                if (res.status === 401) { localStorage.removeItem('auth_token'); window.location.href = '/login'; return null; }
+                return res.json();
+            }
+        };
+
+        const fmt = (n, d = 2) => new Intl.NumberFormat('en-IN', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n);
+
+        function App() {
+            const [theme, setThemeState] = useState(getTheme());
+            const [activeTab, setActiveTab] = useState('home');
+            const [market, setMarket] = useState({ spot_price: 0, funds: 0, atm_strike: 0, lot_size: 75 });
+            const [serverTime, setServerTime] = useState('--:--:--');
+            const [expiry, setExpiry] = useState('current');
+            const [strikes, setStrikes] = useState([]);
+            const [optionsData, setOptionsData] = useState({});
+            const [selected, setSelected] = useState(null);
+            const [ltp, setLtp] = useState(0);
+            const [fetching, setFetching] = useState(false);
+            const [capital, setCapital] = useState(50);
+            const [orderType, setOrderType] = useState('MARKET');
+            const [limitPrice, setLimitPrice] = useState('');
+            const [positions, setPositions] = useState([]);
+            const [toasts, setToasts] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [mockMode, setMockMode] = useState(false);
+            const [tradesTab, setTradesTab] = useState('live');
+            const [trades, setTrades] = useState([]);
+            const [analytics, setAnalytics] = useState({});
+            const [chartData, setChartData] = useState(null);
+            const [settings, setSettings] = useState({ client_id: '', access_token: '' });
+            const [username, setUsername] = useState('admin');
+            const [showDhanModal, setShowDhanModal] = useState(false);
+            const [dhanModalError, setDhanModalError] = useState('');
+            const [dhanModalLoading, setDhanModalLoading] = useState(false);
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
+
+            const toggleTheme = () => { const t = theme === 'dark' ? 'light' : 'dark'; setThemeState(t); setTheme(t); };
+            useEffect(() => { setTheme(theme); }, [theme]);
+
+            const toast = (msg, type = 'info') => {
+                const id = Date.now();
+                setToasts(p => [...p, { id, msg, type }]);
+                setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 4000);
+            };
+
+            useEffect(() => {
+                const token = getToken();
+                if (!token) { window.location.href = '/login'; return; }
+                api.get('/api/auth/check').then(data => {
+                    if (!data || data.status !== 'valid') {
+                        window.location.href = '/login';
+                    } else {
+                        if (data.username) setUsername(data.username);
+                        // Check if Dhan credentials are configured
+                        api.get('/api/settings').then(settingsData => {
+                            if (settingsData && !settingsData.configured) {
+                                setShowDhanModal(true);
+                            }
+                        });
+                    }
+                }).catch(() => window.location.href = '/login');
+            }, []);
+
+            const fetchMarket = async () => {
+                const data = await api.get('/api/market');
+                if (!data) return;
+                setMarket(data);
+                setMockMode(data.mock_mode || false);
+                if (data.server_time_ist) setServerTime(data.server_time_ist);
+                if (data.atm_strike > 0 && strikes.length === 0) {
+                    const interval = data.strike_interval || 50;
+                    const atm = data.atm_strike;
+                    setStrikes([atm - 3*interval, atm - 2*interval, atm - interval, atm, atm + interval, atm + 2*interval, atm + 3*interval]);
+                }
+            };
+
+            const fetchBalance = async () => { const data = await api.get('/api/balance'); if (data?.funds > 0) setMarket(p => ({...p, funds: data.funds})); };
+            const fetchOptions = async () => { if (!strikes.length) return; const data = await api.get(`/api/options/batch/strikes?strikes=${strikes.join(',')}&expiry=${expiry}`); if (data) setOptionsData(data.data || {}); };
+            const fetchPositions = async () => { const data = await api.get('/api/positions'); if (data) setPositions(data.positions || []); };
+            const fetchTrades = async (mode) => { const data = await api.get(`/api/trades/${mode}`); if (data) { setTrades(data.trades || []); setAnalytics(data.analytics || {}); } };
+            const fetchChartData = async (mode) => { const data = await api.get(`/api/analytics/chart?mode=${mode}`); if (data) setChartData(data); };
+            const fetchSettings = async () => { const data = await api.get('/api/settings'); if (data) setSettings(data); };
+
+            const toggleMockMode = async () => {
+                const res = await api.post('/api/config/mock-mode', { enabled: !mockMode });
+                if (res?.status === 'success') { setMockMode(!mockMode); toast(!mockMode ? 'Mock mode enabled' : 'Live mode enabled', !mockMode ? 'mock' : 'success'); }
+            };
+
+            const fetchPrice = async () => {
+                if (!selected) return;
+                setFetching(true);
+                const data = await api.get(`/api/option/ltp?strike=${selected.strike}&option_type=${selected.type}&expiry=${expiry}`);
+                if (data?.status === 'success' && data.ltp > 0) { setLtp(data.ltp); setLimitPrice(data.ltp.toFixed(2)); toast(`Price: ${fmt(data.ltp)}`, 'success'); }
+                else toast('Failed to fetch price', 'error');
+                setFetching(false);
+            };
+
+            const handleSelect = (opt) => { setSelected(opt); setLtp(0); setLimitPrice(''); };
+
+            useEffect(() => { (async () => { setLoading(true); await fetchMarket(); await fetchPositions(); await fetchSettings(); setLoading(false); })(); }, []);
+            useEffect(() => { if (strikes.length) { fetchOptions(); setSelected(null); setLtp(0); } }, [strikes, expiry]);
+            useEffect(() => { if (activeTab === 'trades') { fetchTrades(tradesTab); fetchChartData(tradesTab); } }, [activeTab, tradesTab]);
+            useEffect(() => { const i = setInterval(fetchPositions, 15000); return () => clearInterval(i); }, []);
+            useEffect(() => { const i = setInterval(fetchBalance, 30000); return () => clearInterval(i); }, []);
+            useEffect(() => { const i = setInterval(async () => { const d = await api.get('/'); if (d?.server_time_ist) setServerTime(d.server_time_ist); }, 1000); return () => clearInterval(i); }, []);
+
+            useEffect(() => {
+                if (chartRef.current && chartData?.labels?.length > 0) {
+                    if (chartInstance.current) chartInstance.current.destroy();
+                    chartInstance.current = new Chart(chartRef.current.getContext('2d'), {
+                        type: 'line',
+                        data: { labels: chartData.labels, datasets: [{ label: 'Cumulative P/L', data: chartData.cumulative_pnl, borderColor: theme === 'dark' ? '#4a9eff' : '#3b82f6', backgroundColor: theme === 'dark' ? 'rgba(74,158,255,0.1)' : 'rgba(59,130,246,0.1)', fill: true, tension: 0.4 }] },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: true, grid: { color: theme === 'dark' ? '#2a2a3a' : '#e0e0e5' } }, y: { grid: { color: theme === 'dark' ? '#2a2a3a' : '#e0e0e5' }, ticks: { color: theme === 'dark' ? '#8888a0' : '#5a5a70' } } } }
+                    });
+                }
+            }, [chartData, theme]);
+
+            const lotSize = market.lot_size || 75;
+            const usableFunds = market.funds * (capital / 100);
+            const priceForCalc = orderType === 'LIMIT' && limitPrice ? parseFloat(limitPrice) : ltp;
+            const perLot = priceForCalc * lotSize;
+            const lots = perLot > 0 ? Math.floor(usableFunds / perLot) : 0;
+            const qty = lots * lotSize;
+            const cost = lots * perLot;
+
+            const placeOrder = async () => {
+                if (!selected || lots <= 0) return;
+                const orderData = { strike: selected.strike, option_type: selected.type, quantity: qty, side: 'BUY', expiry, order_type: orderType };
+                if (orderType === 'LIMIT') { if (!limitPrice || parseFloat(limitPrice) <= 0) { toast('Enter valid limit price', 'error'); return; } orderData.limit_price = parseFloat(limitPrice); }
+                const res = await api.post('/api/order', orderData);
+                if (res?.status === 'success') { toast(`${res.mock ? '[MOCK] ' : ''}BUY ${qty} @ ${fmt(res.entry_price || priceForCalc)}`, res.mock ? 'mock' : 'success'); fetchPositions(); }
+                else toast(res?.message || 'Order failed', 'error');
+            };
+
+            const exitPosition = async (pos) => {
+                const res = await api.post('/api/exit', { security_id: pos.security_id, symbol: pos.symbol, qty: pos.qty, product_type: pos.product_type || 'MARGIN' });
+                if (res?.status === 'success') { toast(`${res.mock ? '[MOCK] ' : ''}Exited @ ${fmt(res.exit_price || 0)}`, res.mock ? 'mock' : 'success'); fetchPositions(); }
+                else toast(res?.message || 'Exit failed', 'error');
+            };
+
+            const saveSettings = async () => {
+                const clientId = document.getElementById('client_id')?.value;
+                const accessToken = document.getElementById('access_token')?.value;
+                if (!clientId || !accessToken) { toast('Enter both fields', 'error'); return; }
+                const res = await api.post('/api/settings', { client_id: clientId, access_token: accessToken });
+                if (res?.status === 'success') { toast(res.message, 'success'); fetchSettings(); } else toast(res?.message || 'Save failed', 'error');
+            };
+
+            const changePassword = async () => {
+                const currentPwd = document.getElementById('current_password')?.value;
+                const newPwd = document.getElementById('new_password')?.value;
+                const confirmPwd = document.getElementById('confirm_password')?.value;
+                if (!currentPwd || !newPwd || !confirmPwd) { toast('Fill all password fields', 'error'); return; }
+                if (newPwd !== confirmPwd) { toast('New passwords do not match', 'error'); return; }
+                if (newPwd.length < 4) { toast('Password must be at least 4 characters', 'error'); return; }
+                const res = await api.post('/api/auth/change-password', { current_password: currentPwd, new_password: newPwd });
+                if (res?.status === 'success') {
+                    toast(res.message, 'success');
+                    document.getElementById('current_password').value = '';
+                    document.getElementById('new_password').value = '';
+                    document.getElementById('confirm_password').value = '';
+                } else toast(res?.message || res?.detail || 'Password change failed', 'error');
+            };
+
+            const logout = async () => { await api.post('/api/auth/logout', {}); localStorage.removeItem('auth_token'); window.location.href = '/login'; };
+
+            const saveDhanCredentials = async (clientId, accessToken) => {
+                if (!clientId || !accessToken) {
+                    setDhanModalError('Please enter both Client ID and Access Token');
+                    return;
+                }
+                setDhanModalLoading(true);
+                setDhanModalError('');
+                try {
+                    const res = await api.post('/api/settings', { client_id: clientId, access_token: accessToken });
+                    if (res?.status === 'success') {
+                        setShowDhanModal(false);
+                        toast(res.message || 'Dhan account connected!', 'success');
+                        fetchMarket();
+                        fetchSettings();
+                    } else if (res?.status === 'warning') {
+                        setDhanModalError(res.message || 'Saved but connection test failed. Please verify credentials.');
+                    } else {
+                        setDhanModalError(res?.message || 'Failed to save credentials');
+                    }
+                } catch (err) {
+                    setDhanModalError('Connection error. Please try again.');
+                }
+                setDhanModalLoading(false);
+            };
+
+            const getName = (d) => d?.custom_symbol || d?.trading_symbol || `NIFTY ${d?.strike || ''} ${d?.type || ''}`;
+
+            if (loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'var(--bg-primary)'}}><span className="loading-spinner"></span></div>;
+
+            const ceList = strikes.map(s => optionsData[s]?.ce ? {...optionsData[s].ce, strike: s, type: 'CE'} : null).filter(Boolean);
+            const peList = strikes.map(s => optionsData[s]?.pe ? {...optionsData[s].pe, strike: s, type: 'PE'} : null).filter(Boolean);
+
+            return (
+                <div className={`app ${mockMode ? 'mock-mode' : ''}`}>
+                    <header className="header">
+                        <div className="header-left">
+                            <div className="logo">
+                                <div className="logo-icon">N</div>
+                                <span>Nifty Option Trading</span>
+                                {mockMode && <span className="mock-badge">Mock</span>}
+                            </div>
+                            <div className="main-tabs">
+                                <button className={`main-tab ${activeTab === 'home' ? 'active' : ''}`} onClick={() => setActiveTab('home')}>Home</button>
+                                <button className={`main-tab ${activeTab === 'trades' ? 'active' : ''}`} onClick={() => setActiveTab('trades')}>Trades</button>
+                                <button className={`main-tab ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>Settings</button>
+                            </div>
+                        </div>
+
+                        <div className="header-center">
+                            <div className="spot-box">
+                                <div className="spot-label">NIFTY 50</div>
+                                <div className="spot-value">{fmt(market.spot_price)}</div>
+                            </div>
+                            <div className="time-box">{serverTime} IST</div>
+                        </div>
+
+                        <div className="header-right">
+                            <div className="funds">{fmt(market.funds)}</div>
+                            <div className={`toggle-switch ${mockMode ? 'active' : ''}`} onClick={toggleMockMode}>
+                                <div className="toggle-dot"></div>
+                                <span>Mock</span>
+                            </div>
+                            <button className="icon-btn" onClick={toggleTheme} title="Toggle theme">{theme === 'dark' ? '☾' : '☀'}</button>
+                            <button className="icon-btn" onClick={logout} title="Logout">⏻</button>
+                        </div>
+                    </header>
+
+                    <div className="main-content">
+                        {activeTab === 'home' && (
+                            <div className="home-view">
+                                {/* LEFT - Options */}
+                                <div className="panel">
+                                    <div className="panel-header">
+                                        <span>Select Contract</span>
+                                        <div className="expiry-tabs">
+                                            {['current', 'next', 'monthly'].map(e => (
+                                                <button key={e} className={`expiry-tab ${expiry === e ? 'active' : ''}`} onClick={() => setExpiry(e)}>
+                                                    {e === 'current' ? 'Week' : e === 'next' ? 'Next' : 'Month'}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="panel-content">
+                                        <div className="option-section">
+                                            <div className="section-title">CALLS</div>
+                                            {ceList.map(opt => (
+                                                <div key={opt.strike} className={`option-item call ${selected?.strike === opt.strike && selected?.type === 'CE' ? 'selected' : ''} ${opt.strike === market.atm_strike ? 'atm' : ''}`} onClick={() => handleSelect(opt)}>
+                                                    <div className="option-name">{getName(opt)}{opt.strike === market.atm_strike && <span className="atm-badge">ATM</span>}</div>
+                                                    <div className="option-strike">Strike: {opt.strike}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="divider"></div>
+                                        <div className="option-section">
+                                            <div className="section-title">PUTS</div>
+                                            {peList.map(opt => (
+                                                <div key={opt.strike} className={`option-item put ${selected?.strike === opt.strike && selected?.type === 'PE' ? 'selected' : ''} ${opt.strike === market.atm_strike ? 'atm' : ''}`} onClick={() => handleSelect(opt)}>
+                                                    <div className="option-name">{getName(opt)}{opt.strike === market.atm_strike && <span className="atm-badge">ATM</span>}</div>
+                                                    <div className="option-strike">Strike: {opt.strike}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* CENTER - Order */}
+                                <div className="panel">
+                                    <div className="panel-header">Order Entry</div>
+                                    <div className="panel-content">
+                                        {selected ? (
+                                            <div className="order-box">
+                                                <div className="selected-contract">
+                                                    <div className="contract-name">{getName(selected)}</div>
+                                                    <div className={`contract-price ${ltp > 0 ? selected.type.toLowerCase() : 'empty'}`}>{ltp > 0 ? fmt(ltp) : '-- Fetch Price --'}</div>
+                                                </div>
+                                                <button className="fetch-btn" onClick={fetchPrice} disabled={fetching}>{fetching ? <><span className="loading-spinner"></span> Fetching...</> : 'FETCH PRICE'}</button>
+                                                <div className="order-type-section">
+                                                    <div className="order-type-label">Order Type</div>
+                                                    <div className="order-type-btns">
+                                                        <button className={`order-type-btn ${orderType === 'MARKET' ? 'active' : ''}`} onClick={() => setOrderType('MARKET')}>Market</button>
+                                                        <button className={`order-type-btn ${orderType === 'LIMIT' ? 'active' : ''}`} onClick={() => setOrderType('LIMIT')}>Limit</button>
+                                                    </div>
+                                                    {orderType === 'LIMIT' && <input type="number" className="limit-price-input" placeholder="Limit price" value={limitPrice} onChange={e => setLimitPrice(e.target.value)} step="0.05" />}
+                                                </div>
+                                                <div className="capital-section">
+                                                    <div className="capital-label">Capital Allocation</div>
+                                                    <div className="capital-btns">{[25, 50, 75, 100].map(p => <button key={p} className={`capital-btn ${capital === p ? 'active' : ''}`} onClick={() => setCapital(p)}>{p}%</button>)}</div>
+                                                </div>
+                                                <div className="lots-display">
+                                                    <div className="lots-number">{lots}</div>
+                                                    <div className="lots-label">LOTS</div>
+                                                    {lots > 0 && <div className="lots-info">Qty: {qty} | Cost: {fmt(cost, 0)}</div>}
+                                                </div>
+                                                <button className={`buy-btn ${lots > 0 ? 'enabled' : 'disabled'}`} onClick={placeOrder} disabled={lots <= 0}>{lots > 0 ? `${mockMode ? '[MOCK] ' : ''}BUY ${qty} QTY` : 'Fetch Price First'}</button>
+                                            </div>
+                                        ) : (
+                                            <div className="no-select">
+                                                <div style={{fontSize: '48px', marginBottom: '16px'}}>&#x1F448;</div>
+                                                <div style={{fontSize: '16px', fontWeight: '600'}}>Select a Contract</div>
+                                                <div style={{marginTop: '8px', fontSize: '13px'}}>Choose CE or PE from the list</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* RIGHT - Positions */}
+                                <div className="panel">
+                                    <div className="panel-header">
+                                        <span>Live P/L</span>
+                                        <button className="icon-btn" onClick={fetchPositions} style={{width:'28px',height:'28px',fontSize:'12px'}}>&#x21bb;</button>
+                                    </div>
+                                    <div className="panel-content">
+                                        {positions.length > 0 ? positions.map((pos, i) => (
+                                            <div key={i} className={`position-card ${mockMode ? 'mock' : ''}`}>
+                                                <div className="position-header">
+                                                    <span className="position-symbol">{pos.symbol}</span>
+                                                    <span className="position-qty">{pos.qty}</span>
+                                                </div>
+                                                <div className="position-pnl">
+                                                    <div className={`pnl-value ${pos.pnl >= 0 ? 'positive' : 'negative'}`}>{pos.pnl >= 0 ? '+' : ''}{fmt(pos.pnl)}</div>
+                                                    <div className={`pnl-pct ${pos.pnl_percent >= 0 ? 'positive' : 'negative'}`}>{pos.pnl_percent >= 0 ? '+' : ''}{fmt(pos.pnl_percent)}%</div>
+                                                </div>
+                                                <div className="position-details">
+                                                    <div><span className="detail-label">Entry</span><br/><span className="detail-value">{fmt(pos.entry_price)}</span></div>
+                                                    <div><span className="detail-label">LTP</span><br/><span className="detail-value">{fmt(pos.current_ltp)}</span></div>
+                                                </div>
+                                                <button className="exit-btn" onClick={() => exitPosition(pos)}>{mockMode ? '[MOCK] ' : ''}EXIT</button>
+                                            </div>
+                                        )) : (
+                                            <div className="empty-state">
+                                                <div className="empty-icon">&#x1F4CA;</div>
+                                                <div>No open positions</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'trades' && (
+                            <div className="trades-view">
+                                <div className="trades-header">
+                                    <div className="trades-title">Trade History</div>
+                                    <div className="trades-tabs">
+                                        <button className={`trades-tab ${tradesTab === 'live' ? 'active' : ''}`} onClick={() => setTradesTab('live')}>Live Trades</button>
+                                        <button className={`trades-tab ${tradesTab === 'mock' ? 'active' : ''}`} onClick={() => setTradesTab('mock')}>Mock Trades</button>
+                                    </div>
+                                </div>
+
+                                <div className="analytics-grid">
+                                    <div className="analytics-card">
+                                        <div className={`analytics-value ${(analytics.today_pnl || 0) >= 0 ? 'positive' : 'negative'}`}>{(analytics.today_pnl || 0) >= 0 ? '+' : ''}{fmt(analytics.today_pnl || 0)}</div>
+                                        <div className="analytics-label">Today P/L</div>
+                                    </div>
+                                    <div className="analytics-card">
+                                        <div className={`analytics-value ${(analytics.total_pnl || 0) >= 0 ? 'positive' : 'negative'}`}>{(analytics.total_pnl || 0) >= 0 ? '+' : ''}{fmt(analytics.total_pnl || 0)}</div>
+                                        <div className="analytics-label">Total P/L</div>
+                                    </div>
+                                    <div className="analytics-card">
+                                        <div className="analytics-value">{fmt(analytics.win_rate || 0, 1)}%</div>
+                                        <div className="analytics-label">Win Rate</div>
+                                    </div>
+                                    <div className="analytics-card">
+                                        <div className="analytics-value">{analytics.total_trades || 0}</div>
+                                        <div className="analytics-label">Total Trades</div>
+                                    </div>
+                                </div>
+
+                                <div className="chart-container">
+                                    <canvas ref={chartRef}></canvas>
+                                </div>
+
+                                <div className="trades-list">
+                                    <div className="trades-list-header">
+                                        <div>Symbol</div>
+                                        <div>Side</div>
+                                        <div>Qty</div>
+                                        <div>Entry</div>
+                                        <div>Exit</div>
+                                        <div>P/L</div>
+                                    </div>
+                                    {trades.slice(0, 20).map((t, i) => (
+                                        <div key={i} className="trade-row">
+                                            <div className="trade-symbol">{t.symbol}</div>
+                                            <div className={`trade-side ${t.side.toLowerCase()}`}>{t.side}</div>
+                                            <div>{t.quantity}</div>
+                                            <div>{fmt(t.price)}</div>
+                                            <div>{t.exit_price ? fmt(t.exit_price) : '-'}</div>
+                                            <div className={`trade-pnl ${(t.pnl || 0) >= 0 ? 'positive' : 'negative'}`}>{t.pnl !== null ? fmt(t.pnl) : '-'}</div>
+                                        </div>
+                                    ))}
+                                    {trades.length === 0 && <div style={{padding: '40px', textAlign: 'center', color: 'var(--text-muted)'}}>No trades yet</div>}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'settings' && (
+                            <div className="settings-view">
+                                <div className="settings-title">Settings</div>
+
+                                <div className="settings-section">
+                                    <div className="settings-section-title">Dhan API Credentials</div>
+                                    <div className="form-group">
+                                        <label className="form-label">Client ID</label>
+                                        <input type="text" id="client_id" className="form-input" defaultValue={settings.client_id} placeholder="Enter Client ID" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Access Token</label>
+                                        <input type="password" id="access_token" className="form-input" placeholder="Enter Access Token" />
+                                        {settings.access_token_masked && <div style={{fontSize: '11px', color: 'var(--text-muted)', marginTop: '6px'}}>Current: {settings.access_token_masked}</div>}
+                                    </div>
+                                    <button className="btn-primary" onClick={saveSettings}>Save Credentials</button>
+                                </div>
+
+                                <div className="settings-section">
+                                    <div className="settings-section-title">Get API Key</div>
+                                    <p style={{fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px'}}>Generate your API credentials from Dhan Trading APIs portal.</p>
+                                    <a href="https://web.dhan.co/index/profile" target="_blank" className="info-link">Open Dhan Trading APIs ↗</a>
+                                </div>
+
+                                <div className="settings-section">
+                                    <div className="settings-section-title">Account Settings</div>
+                                    <div style={{marginBottom: '16px', padding: '12px', background: 'var(--bg-secondary)', borderRadius: '8px'}}>
+                                        <span style={{fontSize: '12px', color: 'var(--text-muted)'}}>Logged in as: </span>
+                                        <span style={{fontWeight: '600'}}>{username}</span>
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Current Password</label>
+                                        <input type="password" id="current_password" className="form-input" placeholder="Enter current password" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">New Password</label>
+                                        <input type="password" id="new_password" className="form-input" placeholder="Enter new password" />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label">Confirm New Password</label>
+                                        <input type="password" id="confirm_password" className="form-input" placeholder="Confirm new password" />
+                                    </div>
+                                    <button className="btn-primary" onClick={changePassword}>Change Password</button>
+                                </div>
+
+                                <div className="settings-section">
+                                    <div className="settings-section-title">Preferences</div>
+                                    <div className="setting-row">
+                                        <span className="setting-label">Theme</span>
+                                        <button className="icon-btn" onClick={toggleTheme} style={{width: 'auto', padding: '8px 16px'}}>{theme === 'dark' ? '☾ Dark' : '☀ Light'}</button>
+                                    </div>
+                                    <div className="setting-row">
+                                        <span className="setting-label">Mock Trading Mode</span>
+                                        <div className={`toggle-switch ${mockMode ? 'active' : ''}`} onClick={toggleMockMode}>
+                                            <div className="toggle-dot"></div>
+                                            <span>{mockMode ? 'ON' : 'OFF'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="footer">
+                        Developed by <a href="mailto:ha3k4r.sh@gmail.com">ha3k4r.sh@gmail.com</a>
+                    </div>
+
+                    {/* Dhan Credentials Modal */}
+                    {showDhanModal && (
+                        <div className="modal-overlay">
+                            <div className="modal-card">
+                                <div className="modal-icon">D</div>
+                                <div className="modal-title">Connect Your Dhan Account</div>
+                                <div className="modal-subtitle">Enter your Dhan API credentials to start trading</div>
+
+                                {dhanModalError && <div className="modal-error">{dhanModalError}</div>}
+
+                                <div className="modal-form">
+                                    <input
+                                        type="text"
+                                        id="dhan_client_id"
+                                        className="modal-input"
+                                        placeholder="Client ID"
+                                        autoComplete="off"
+                                    />
+                                    <input
+                                        type="password"
+                                        id="dhan_access_token"
+                                        className="modal-input"
+                                        placeholder="Access Token"
+                                        autoComplete="off"
+                                    />
+                                </div>
+
+                                <button
+                                    className="modal-btn"
+                                    onClick={() => {
+                                        const clientId = document.getElementById('dhan_client_id')?.value;
+                                        const accessToken = document.getElementById('dhan_access_token')?.value;
+                                        saveDhanCredentials(clientId, accessToken);
+                                    }}
+                                    disabled={dhanModalLoading}
+                                >
+                                    {dhanModalLoading ? (
+                                        <><span className="loading-spinner"></span> Connecting...</>
+                                    ) : (
+                                        'Connect & Continue'
+                                    )}
+                                </button>
+
+                                <a
+                                    href="https://web.dhan.co/index/profile"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="modal-link"
+                                >
+                                    Get your API credentials from Dhan
+                                </a>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="toast-container">
+                        {toasts.map(t => <div key={t.id} className={`toast ${t.type}`}>{t.msg}</div>)}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
